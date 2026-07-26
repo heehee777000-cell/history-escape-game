@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>타임머신 역사 마을 방탈출 | 초등 5학년 사회 탐험대</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts for crisp modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK (v10 Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- TOP NAVIGATION HEADER -->
+        <header class="main-header">
+            <div class="brand">
+                <i class="fa-solid fa-hourglass-half spin-icon"></i>
+                <div class="brand-text">
+                    <h1>타임머신 역사 방탈출</h1>
+                    <span class="sub-title">초등 5학년 사회 연계 탐험</span>
+                </div>
+            </div>
+
+            <!-- PLAYER STATUS & ENERGY BAR -->
+            <div class="player-hud">
+                <div class="profile-info">
+                    <span class="avatar"><i class="fa-solid fa-user-astronaut"></i></span>
+                    <div class="name-box">
+                        <span id="player-name" class="name">역사 탐험가</span>
+                        <button id="switch-account-btn" title="학생 계정 로그인/전환"><i class="fa-solid fa-right-to-bracket"></i> 로그인</button>
+                    </div>
+                </div>
+
+                <div class="energy-container" title="방탈출을 성공하여 에너지를 100% 모으면 타임머신으로 다른 시대로 이동합니다!">
+                    <div class="energy-header">
+                        <span class="energy-label"><i class="fa-solid fa-bolt"></i> 타임머신 에너지</span>
+                        <span id="energy-text" class="energy-percent">0%</span>
+                    </div>
+                    <div class="energy-track">
+                        <div id="energy-bar" class="energy-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="stat-badge">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span id="total-score">0</span> 점
+                </div>
+
+                <!-- NAV BUTTONS -->
+                <div class="nav-actions">
+                    <button id="wrong-notes-btn" class="nav-btn btn-rose">
+                        <i class="fa-solid fa-book-open-reader"></i> 오답 노트 (<span id="wrong-count-badge">0</span>)
+                    </button>
+                    <button id="hall-of-fame-btn" class="nav-btn btn-gold">
+                        <i class="fa-solid fa-crown"></i> 명예의 전당
+                    </button>
+                    <button id="relic-gallery-btn" class="nav-btn btn-cyan">
+                        <i class="fa-solid fa-book-bookmark"></i> 유물 도감
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA WITH MULTIPLE SCREENS -->
+        <main class="content-viewport">
+
+            <!-- SCREEN 1: ERA SELECTION & TIME MACHINE HUB -->
+            <section id="screen-era-hub" class="game-screen active">
+                <div class="hub-hero">
+                    <div class="hero-text">
+                        <h2><i class="fa-solid fa-compass"></i> 역사의 시대를 선택하고 마을 방탈출을 시작하세요!</h2>
+                        <p>Firebase 보안 연동으로 나만의 학습 데이터가 안전하게 보호됩니다.</p>
+                    </div>
+                    <button id="warp-active-btn" class="warp-btn" disabled>
+                        <i class="fa-solid fa-atom"></i> 타임머신 에너지 충전 완료! (시대 워프 가동)
+                    </button>
+                </div>
+
+                <!-- ERA CARDS GRID -->
+                <div class="era-grid">
+                    <!-- Era 1: 선사/고조선 -->
+                    <div class="era-card" data-era="1">
+                        <div class="era-img-wrapper">
+                            <img src="images/prehistoric_village.jpg" alt="선사/고조선 마을">
+                            <span class="era-badge">1시대</span>
+                        </div>
+                        <div class="era-body">
+                            <h3><i class="fa-solid fa-campground"></i> 선사 & 고조선 마을</h3>
+                            <p class="era-desc">움집, 고인돌, 청동기 비파형 동검의 비밀을 풀어라!</p>
+                            <div class="era-progress">
+                                <span>방탈출 진행도</span>
+                                <span id="era-1-progress-text" class="prog-num">0 / 3</span>
+                            </div>
+                            <button class="btn-enter-village" data-era="1">
+                                <i class="fa-solid fa-door-open"></i> 마을 진입하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Era 2: 삼국/통일신라 -->
+                    <div class="era-card" data-era="2">
+                        <div class="era-img-wrapper">
+                            <img src="images/three_kingdoms_village.jpg" alt="삼국시대 마을">
+                            <span class="era-badge">2시대</span>
+                        </div>
+                        <div class="era-body">
+                            <h3><i class="fa-solid fa-monument"></i> 삼국 & 통일신라 마을</h3>
+                            <p class="era-desc">서라벌, 무령왕릉, 고구려 수산리 벽화의 수수께끼!</p>
+                            <div class="era-progress">
+                                <span>방탈출 진행도</span>
+                                <span id="era-2-progress-text" class="prog-num">0 / 3</span>
+                            </div>
+                            <button class="btn-enter-village" data-era="2">
+                                <i class="fa-solid fa-door-open"></i> 마을 진입하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Era 3: 고려시대 -->
+                    <div class="era-card" data-era="3">
+                        <div class="era-img-wrapper">
+                            <img src="images/goryeo_village.jpg" alt="고려시대 마을">
+                            <span class="era-badge">3시대</span>
+                        </div>
+                        <div class="era-body">
+                            <h3><i class="fa-solid fa-ship"></i> 고려시대 개경 마을</h3>
+                            <p class="era-desc">벽란도 무역선, 고려청자, 팔만대장경 암호의 비밀!</p>
+                            <div class="era-progress">
+                                <span>방탈출 진행도</span>
+                                <span id="era-3-progress-text" class="prog-num">0 / 3</span>
+                            </div>
+                            <button class="btn-enter-village" data-era="3">
+                                <i class="fa-solid fa-door-open"></i> 마을 진입하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Era 4: 조선시대 -->
+                    <div class="era-card" data-era="4">
+                        <div class="era-img-wrapper">
+                            <img src="images/joseon_village.jpg" alt="조선시대 마을">
+                            <span class="era-badge">4시대</span>
+                        </div>
+                        <div class="era-body">
+                            <h3><i class="fa-solid fa-scroll"></i> 조선시대 한양 마을</h3>
+                            <p class="era-desc">집현전 훈민정음, 한양 주막, 수원화성 성문 암호!</p>
+                            <div class="era-progress">
+                                <span>방탈출 진행도</span>
+                                <span id="era-4-progress-text" class="prog-num">0 / 3</span>
+                            </div>
+                            <button class="btn-enter-village" data-era="4">
+                                <i class="fa-solid fa-door-open"></i> 마을 진입하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Era 5: 근현대 -->
+                    <div class="era-card" data-era="5">
+                        <div class="era-img-wrapper">
+                            <img src="images/modern_korea_village.jpg" alt="근현대 마을">
+                            <span class="era-badge">5시대</span>
+                        </div>
+                        <div class="era-body">
+                            <h3><i class="fa-solid fa-landmark"></i> 근현대 독립 마을</h3>
+                            <p class="era-desc">독립문 암호 통신, 근대 학교, 독립선언서 비밀 열쇠!</p>
+                            <div class="era-progress">
+                                <span>방탈출 진행도</span>
+                                <span id="era-5-progress-text" class="prog-num">0 / 3</span>
+                            </div>
+                            <button class="btn-enter-village" data-era="5">
+                                <i class="fa-solid fa-door-open"></i> 마을 진입하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCREEN 2: VILLAGE ROOM SELECTION -->
+            <section id="screen-village-map" class="game-screen">
+                <div class="village-header-bar">
+                    <button id="back-to-hub-btn" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> 시대 선택으로</button>
+                    <div class="village-title-group">
+                        <h2 id="village-title">조선시대 한양 마을 탐험</h2>
+                        <span id="village-subtitle" class="subtitle">3개의 방을 탈출하여 마을을 지나가세요!</span>
+                    </div>
+                    <div class="village-energy-indicator">
+                        <i class="fa-solid fa-bolt glow-yellow"></i>
+                        <span>마을 전체 탈출 시 에너지 +20%</span>
+                    </div>
+                </div>
+
+                <!-- VILLAGE SCENE & ROOM NODES -->
+                <div id="village-scene" class="village-scene-container">
+                    <img id="village-bg-img" src="images/joseon_village.jpg" alt="마을 배경">
+                    
+                    <div class="room-nodes-layer">
+                        <!-- Node 1 -->
+                        <div class="room-node-card" data-room-idx="0">
+                            <div class="room-node-header">
+                                <span class="room-num">1번 방</span>
+                                <span class="status-pill status-unlocked">탈출 가능</span>
+                            </div>
+                            <h4 class="room-name">집현전 비밀 서재</h4>
+                            <p class="room-desc">훈민정음 반포 문서와 서적 속 암호를 찾아라!</p>
+                            <button class="btn-start-room" data-room-idx="0">
+                                <i class="fa-solid fa-key"></i> 방 진입 (1분 도전)
+                            </button>
+                        </div>
+
+                        <!-- Node 2 -->
+                        <div class="room-node-card" data-room-idx="1">
+                            <div class="room-node-header">
+                                <span class="room-num">2번 방</span>
+                                <span class="status-pill status-locked">잠김</span>
+                            </div>
+                            <h4 class="room-name">한양 저잣거리 주막</h4>
+                            <p class="room-desc">조선시대 시전 상인들의 장부 힌트를 찾아라!</p>
+                            <button class="btn-start-room" data-room-idx="1" disabled>
+                                <i class="fa-solid fa-lock"></i> 1번 방 먼저 탈출
+                            </button>
+                        </div>
+
+                        <!-- Node 3 -->
+                        <div class="room-node-card" data-room-idx="2">
+                            <div class="room-node-header">
+                                <span class="room-num">3번 방</span>
+                                <span class="status-pill status-locked">잠김</span>
+                            </div>
+                            <h4 class="room-name">수원화성 비밀 성문</h4>
+                            <p class="room-desc">정약용의 거중기와 화성 설계도 단서를 해독하라!</p>
+                            <button class="btn-start-room" data-room-idx="2" disabled>
+                                <i class="fa-solid fa-lock"></i> 2번 방 먼저 탈출
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCREEN 3: INTERACTIVE ROOM ESCAPE -->
+            <section id="screen-escape-room" class="game-screen">
+                <!-- ROOM HUD HEADER -->
+                <div class="escape-hud">
+                    <button id="exit-room-btn" class="btn-danger-sm"><i class="fa-solid fa-door-closed"></i> 포기하고 나가기</button>
+                    
+                    <div class="room-title-info">
+                        <h3 id="current-room-title">집현전 비밀 서재</h3>
+                        <span id="current-room-era-tag" class="era-tag">조선시대</span>
+                    </div>
+
+                    <!-- 1-MINUTE SVG TIMER RING -->
+                    <div class="timer-widget" id="timer-widget">
+                        <svg class="timer-svg" viewBox="0 0 100 100">
+                            <circle class="timer-bg" cx="50" cy="50" r="44"></circle>
+                            <circle id="timer-progress" class="timer-bar" cx="50" cy="50" r="44"></circle>
+                        </svg>
+                        <div class="timer-text-content">
+                            <span id="timer-sec" class="seconds">60</span>
+                            <span id="timer-status-text" class="timer-sub">초</span>
+                        </div>
+                        <div id="timer-pause-badge" class="pause-badge hidden">
+                            <i class="fa-solid fa-pause"></i> 단서 조사 중 (시간 정지)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAIN ESCAPE VIEWPORT split into ROOM CANVAS and CLUE/SOLVE PANEL -->
+                <div class="escape-main-layout">
+                    
+                    <!-- ROOM CANVAS (INTERACTIVE OBJECTS) -->
+                    <div class="room-viewport" id="room-viewport">
+                        <img id="room-bg" src="images/joseon_village.jpg" alt="방 배경">
+                        <div class="viewport-overlay-title">
+                            <p><i class="fa-solid fa-hand-pointer"></i> 방 내부의 반짝이는 단서 물건들을 눌러 힌트를 수집하세요!</p>
+                        </div>
+
+                        <!-- CLICKABLE HOTSPOT OBJECTS LAYER -->
+                        <div id="hotspots-container" class="hotspots-layer">
+                            <!-- Hotspots inserted dynamically by app.js -->
+                        </div>
+                    </div>
+
+                    <!-- SIDE PANEL: INVENTORY & PUZZLE SOLVER -->
+                    <div class="escape-side-panel">
+                        
+                        <!-- CLUE INVENTORY BOARD -->
+                        <div class="clue-board">
+                            <div class="clue-board-header">
+                                <h4><i class="fa-solid fa-magnifying-glass"></i> 수집한 단서 (<span id="clue-count-text">0 / 3</span>)</h4>
+                            </div>
+                            <div id="clue-list-box" class="clue-list">
+                                <div class="clue-empty-notice">
+                                    <i class="fa-solid fa-lightbulb"></i>
+                                    <p>왼쪽 방 내부의 물건을 조작하여 암호 단서를 찾아보세요!</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MASTER ESCAPE LOCK SOLVER BOX -->
+                        <div class="lock-solver-box">
+                            <div class="solver-header">
+                                <h4><i class="fa-solid fa-lock"></i> 탈출 자물쇠 풀기</h4>
+                            </div>
+                            <div class="solver-body">
+                                <p id="lock-question-text" class="question-prompt">
+                                    단서를 조사한 후 최종 방탈출 암호를 푸세요!
+                                </p>
+
+                                <!-- PUZZLE INPUT CONTAINER (DYNAMIC UI PER ROOM) -->
+                                <div id="puzzle-interaction-area" class="puzzle-area">
+                                    <!-- Dynamic content inserted by app.js -->
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL 1: CLUE INSPECTION POPUP (PAUSES TIMER) -->
+    <div id="modal-clue" class="modal-backdrop hidden">
+        <div class="modal-window clue-modal">
+            <div class="modal-header">
+                <h3 id="modal-clue-title"><i class="fa-solid fa-book-bookmark"></i> 단서 조사</h3>
+                <button class="close-modal-btn" id="close-clue-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="clue-inspection-box">
+                    <div class="clue-icon-large" id="modal-clue-icon"><i class="fa-solid fa-scroll"></i></div>
+                    <div class="clue-content">
+                        <h4 id="modal-clue-item-name">비밀 서적</h4>
+                        <div id="modal-clue-text" class="clue-description-text">
+                            단서 내용이 여기에 표시됩니다.
+                        </div>
+                    </div>
+                </div>
+                <div class="clue-educational-tip">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span id="modal-educational-fact">초등 5학년 역사 포인트: ...</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-clue-confirm-btn" class="btn-cyan-lg">
+                    <i class="fa-solid fa-check"></i> 단서 기억하고 팝업 닫기 (타이머 재개)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: ESCAPE SUCCESS & REWARD MODAL -->
+    <div id="modal-success" class="modal-backdrop hidden">
+        <div class="modal-window success-modal">
+            <div class="modal-body text-center">
+                <div class="success-icon-anim"><i class="fa-solid fa-key"></i></div>
+                <h2 class="text-gold">방 탈출 성공!</h2>
+                <p id="success-room-name" class="subtitle">1번 방을 멋지게 탈출했습니다!</p>
+                
+                <div class="reward-summary-box">
+                    <div class="reward-item">
+                        <span class="rw-label">탈출 남은 시간</span>
+                        <span id="rw-time-left" class="rw-val text-cyan">45초</span>
+                    </div>
+                    <div class="reward-item">
+                        <span class="rw-label">스피드 획득 점수</span>
+                        <span id="rw-score-gained" class="rw-val text-gold">+350점</span>
+                    </div>
+                    <div class="reward-item">
+                        <span class="rw-label">타임머신 에너지</span>
+                        <span id="rw-energy-gained" class="rw-val text-green">+20% 충전</span>
+                    </div>
+                </div>
+
+                <div id="unlocked-relic-card-box" class="relic-unlock-box">
+                    <!-- Dynamic unlocked relic card info -->
+                </div>
+
+                <div class="success-actions">
+                    <button id="btn-next-room" class="btn-gold-lg">
+                        <i class="fa-solid fa-forward"></i> 다음 방으로 연속 이동하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: TIME MACHINE WARP ANIMATION MODAL -->
+    <div id="modal-warp" class="modal-backdrop hidden">
+        <div class="modal-window warp-modal">
+            <div class="warp-portal-container">
+                <div class="portal-ring ring1"></div>
+                <div class="portal-ring ring2"></div>
+                <div class="portal-core"><i class="fa-solid fa-bolt"></i></div>
+            </div>
+            <h2 class="text-gold glow-text">타임머신 워프 가동!</h2>
+            <p id="warp-message">에너지가 100% 충전되어 새로운 시대로 이동합니다!</p>
+            <div class="warp-destination-box">
+                <span id="warp-era-name" class="dest-era">삼국 & 통일신라 시대로...</span>
+            </div>
+            <button id="btn-finish-warp" class="btn-cyan-lg">
+                <i class="fa-solid fa-play"></i> 새 시대 마을로 워프 완료
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 4: HALL OF FAME (명예의 전당) -->
+    <div id="modal-hall-of-fame" class="modal-backdrop hidden">
+        <div class="modal-window hall-modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-crown text-gold"></i> 명예의 전당 (Top 10 Leaderboard)</h3>
+                <button class="close-modal-btn" id="close-hall-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- TABS -->
+                <div class="tab-header">
+                    <button class="tab-btn active" data-tab="tab-era-escapes">
+                        <i class="fa-solid fa-award"></i> 시대 탈출 횟수 순위 (Top 10)
+                    </button>
+                    <button class="tab-btn" data-tab="tab-minigame-clears">
+                        <i class="fa-solid fa-gamepad"></i> 미니게임/방탈출 클리어 순위 (Top 10)
+                    </button>
+                </div>
+
+                <!-- TAB CONTENT 1: ERA ESCAPES -->
+                <div id="tab-era-escapes" class="tab-content active">
+                    <table class="rank-table">
+                        <thead>
+                            <tr>
+                                <th>순위</th>
+                                <th>탐험가 닉네임</th>
+                                <th>탈출한 시대 수</th>
+                                <th>총 방탈출 횟수</th>
+                                <th>최고 점수</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rank-table-era-body">
+                            <!-- Inserted dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- TAB CONTENT 2: MINIGAME CLEARS -->
+                <div id="tab-minigame-clears" class="tab-content">
+                    <table class="rank-table">
+                        <thead>
+                            <tr>
+                                <th>순위</th>
+                                <th>탐험가 닉네임</th>
+                                <th>미니게임 클리어 수</th>
+                                <th>평균 남은 시간</th>
+                                <th>총 점수</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rank-table-mini-body">
+                            <!-- Inserted dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <p class="rank-footer-note"><i class="fa-solid fa-circle-info"></i> 방을 탈출할 때마다 나의 기록이 자동으로 명예의 전당에 갱신됩니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: RELIC GALLERY (유물 도감) -->
+    <div id="modal-relic-gallery" class="modal-backdrop hidden">
+        <div class="modal-window gallery-modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-book-bookmark text-cyan"></i> 초등 5학년 역사 유물/인물 도감</h3>
+                <button class="close-modal-btn" id="close-relic-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="gallery-sub">방탈출을 클리어하여 해금한 5학년 필수 역사 유물과 인물 카드를 모아보세요!</p>
+                <div id="relic-grid" class="relic-grid-container">
+                    <!-- Inserted dynamically by app.js -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: WRONG ANSWERS NOTEBOOK (오답 노트 & 복습 모드) -->
+    <div id="modal-wrong-notes" class="modal-backdrop hidden">
+        <div class="modal-window wrong-modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-book-open-reader text-rose"></i> 오답 노트 & 역사 복습실</h3>
+                <button class="close-modal-btn" id="close-wrong-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="gallery-sub">방탈출 과정에서 틀렸던 역사 퀴즈를 다시 풀고 해설을 확인하여 완벽하게 습득하세요!</p>
+                <div id="wrong-notes-list" class="wrong-notes-container">
+                    <!-- Inserted dynamically by app.js -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: FIREBASE AUTH & STUDENT ACCOUNT SWITCHER -->
+    <div id="modal-login-account" class="modal-backdrop hidden">
+        <div class="modal-window login-modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-shield text-gold"></i> 로그인 & 데이터 동기화</h3>
+                <button class="close-modal-btn" id="close-login-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- FIREBASE CONNECT STATUS -->
+                <div class="firebase-status-box">
+                    <span class="fb-label"><i class="fa-solid fa-cloud"></i> 클라우드 동기화 상태:</span>
+                    <span id="firebase-status-badge" class="status-badge-offline">로컬 모드 (Firebase 설정 전)</span>
+                </div>
+
+                <div class="auth-buttons-group">
+                    <button id="btn-google-login" class="btn-google">
+                        <i class="fa-brands fa-google"></i> Google 계정으로 클라우드 로그인
+                    </button>
+                </div>
+
+                <hr class="divider-line">
+
+                <!-- LOCAL STUDENT ACCOUNT SWITCHER -->
+                <div class="login-input-group">
+                    <label for="student-name-input"><i class="fa-solid fa-id-card"></i> 로컬 학생 닉네임 / 학번 입력:</label>
+                    <div class="input-with-btn">
+                        <input type="text" id="student-name-input" placeholder="예: 5학년1반_김역사" maxlength="12">
+                        <button id="btn-login-submit" class="btn-cyan-lg"><i class="fa-solid fa-right-to-bracket"></i> 로그인/생성</button>
+                    </div>
+                </div>
+
+                <div class="account-list-section">
+                    <h4><i class="fa-solid fa-users"></i> 저장된 학생 계정 목록</h4>
+                    <div id="account-cards-grid" class="account-cards-grid">
+                        <!-- Inserted dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUDIO SYNTHESIZER SCRIPT (Web Audio API in app.js) -->
+    <script src="app.js"></script>
+</body>
+</html>
