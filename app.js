@@ -497,16 +497,16 @@ async function saveToFirestoreIfOnline() {
 // GAME STATE MANAGEMENT (ERA UNLOCK & PROGRESSION LOCK)
 // ==========================================================================
 const gameState = {
-    currentAccount: "학생_탐험가1",
+    currentAccount: "main_user",
     accounts: {},
     
-    playerName: "학생_탐험가1",
+    playerName: "역사 탐험가",
     totalScore: 0,
     energy: 0,
     currentEra: 1,
     currentRoomIdx: 0,
     eraProgress: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-    unlockedEras: [1], // Default: Only Era 1 is unlocked! Eras 2-5 require Time Machine Warp!
+    unlockedEras: [1], // Default: Only Era 1 is unlocked!
     unlockedRelics: [],
     minigameClears: 0,
     totalEscapes: 0,
@@ -527,29 +527,26 @@ const gameState = {
     
     loadAccounts() {
         try {
-            const raw = localStorage.getItem('history_escape_accounts_v3');
+            const raw = localStorage.getItem('history_escape_accounts_v4');
             if (raw) {
                 this.accounts = JSON.parse(raw);
             }
-            if (!this.accounts["학생_탐험가1"]) {
-                this.accounts["학생_탐험가1"] = this.createNewAccountData("학생_탐험가1");
+            if (!this.accounts["main_user"]) {
+                this.accounts["main_user"] = this.createNewAccountData("역사 탐험가");
             }
-            const lastActive = localStorage.getItem('history_escape_last_active');
-            if (lastActive && this.accounts[lastActive]) {
-                this.currentAccount = lastActive;
-            }
+            this.currentAccount = "main_user";
         } catch (e) {
-            this.accounts = { "학생_탐험가1": this.createNewAccountData("학생_탐험가1") };
+            this.accounts = { "main_user": this.createNewAccountData("역사 탐험가") };
         }
     },
     
     createNewAccountData(name) {
         return {
-            name: name,
+            name: name || "역사 탐험가",
             totalScore: 0,
             energy: 0,
             eraProgress: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-            unlockedEras: [1], // Only Era 1 unlocked by default
+            unlockedEras: [1],
             unlockedRelics: [],
             minigameClears: 0,
             totalEscapes: 0,
@@ -557,15 +554,24 @@ const gameState = {
             wrongQuestionIds: []
         };
     },
+
+    updatePlayerName(newName) {
+        this.playerName = newName;
+        if (this.accounts[this.currentAccount]) {
+            this.accounts[this.currentAccount].name = newName;
+        }
+        this.saveState();
+        this.updateHUD();
+    },
     
     switchUserAccount(accName) {
         if (!this.accounts[accName]) {
-            this.accounts[accName] = this.createNewAccountData(accName);
+            this.accounts[accName] = this.createNewAccountData("역사 탐험가");
         }
         this.currentAccount = accName;
         const data = this.accounts[accName];
         
-        this.playerName = data.name;
+        this.playerName = data.name || "역사 탐험가";
         this.totalScore = data.totalScore || 0;
         this.energy = data.energy || 0;
         this.eraProgress = data.eraProgress || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
@@ -657,47 +663,85 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     renderHallOfFameTables();
     renderRelicGallery();
+
+    // Mobile Audio Context Touch Unlock
+    const unlockAudio = () => {
+        audioSFX.init();
+        document.removeEventListener('touchstart', unlockAudio);
+        document.removeEventListener('pointerdown', unlockAudio);
+    };
+    document.addEventListener('touchstart', unlockAudio, { passive: true });
+    document.addEventListener('pointerdown', unlockAudio, { passive: true });
 });
 
+function setMobileEscapeView(view) {
+    const layout = document.querySelector('.escape-main-layout');
+    const tabRoomBtn = document.getElementById('tab-btn-room-view');
+    const tabPanBtn = document.getElementById('tab-btn-panel-view');
+    
+    if (!layout) return;
+    if (view === 'room') {
+        layout.classList.remove('show-panel');
+        layout.classList.add('show-room');
+        if (tabRoomBtn) tabRoomBtn.classList.add('active');
+        if (tabPanBtn) tabPanBtn.classList.remove('active');
+    } else {
+        layout.classList.remove('show-room');
+        layout.classList.add('show-panel');
+        if (tabPanBtn) tabPanBtn.classList.add('active');
+        if (tabRoomBtn) tabRoomBtn.classList.remove('active');
+    }
+}
+
 function setupEventListeners() {
+    // Mobile Room Escape Tabs
+    document.getElementById('tab-btn-room-view')?.addEventListener('click', () => setMobileEscapeView('room'));
+    document.getElementById('tab-btn-panel-view')?.addEventListener('click', () => setMobileEscapeView('panel'));
+
     document.getElementById('switch-account-btn').addEventListener('click', () => {
-        renderAccountListModal();
+        renderProfileModal();
         openModal('modal-login-account');
     });
     document.getElementById('close-login-modal').addEventListener('click', () => closeModal('modal-login-account'));
     
-    document.getElementById('btn-login-submit').addEventListener('click', () => {
+    document.getElementById('btn-login-submit')?.addEventListener('click', () => {
         const inp = document.getElementById('student-name-input');
-        const val = inp.value.trim();
-        if (val.length > 0) {
-            gameState.switchUserAccount(val);
-            inp.value = '';
-            closeModal('modal-login-account');
-            alert(`🎉 '${val}' 학생 계정으로 로그인되었습니다!`);
+        if (inp) {
+            const val = inp.value.trim();
+            if (val.length > 0) {
+                gameState.updatePlayerName(val);
+                closeModal('modal-login-account');
+                alert(`✨ 탐험가 닉네임이 '${val}'(으)로 변경되었습니다!`);
+            }
         }
     });
 
     document.getElementById('btn-google-login').addEventListener('click', () => {
         if (!firebaseAuth) {
-            alert('⚙️ Firebase 설정이 아직 완료되지 않았습니다.\nVercel 환경변수 등록 또는 Firebase 개발자 콘솔에서 키를 설정해주세요.');
+            alert('⚙️ Firebase 설정 안내:\n현재 내장 프로토타입 상태입니다. Google 계정 연동 시 클라우드 동기화가 설정됩니다.');
             return;
         }
         const provider = new firebase.auth.GoogleAuthProvider();
         firebaseAuth.signInWithPopup(provider).then(result => {
-            alert(`🔑 Firebase 구글 인증 성공: ${result.user.displayName || result.user.email}님 환영합니다!`);
+            const userName = result.user.displayName || result.user.email || 'Google탐험가';
+            gameState.updatePlayerName(userName);
+            alert(`🔑 Firebase 구글 인증 성공: ${userName}님 환영합니다!`);
             closeModal('modal-login-account');
         }).catch(err => {
             alert(`Google 인증 안내: ${err.message}`);
         });
     });
 
-    document.getElementById('btn-anon-login').addEventListener('click', () => {
+    document.getElementById('btn-anon-login')?.addEventListener('click', () => {
         if (!firebaseAuth) {
-            alert('⚙️ Firebase 설정이 아직 완료되지 않았습니다.');
+            gameState.updatePlayerName('익명 탐험가');
+            alert('👤 익명 게스트 모드로 설정되었습니다!');
+            closeModal('modal-login-account');
             return;
         }
         firebaseAuth.signInAnonymously().then(result => {
-            alert(`👤 익명 게스트로 로그인 성공! 클라우드에 게스트 전용 데이터가 자동 생성됩니다.`);
+            gameState.updatePlayerName('익명 탐험가');
+            alert(`👤 익명 게스트로 로그인 성공! 클라우드 게스트 데이터가 설정됩니다.`);
             closeModal('modal-login-account');
         }).catch(err => {
             alert(`익명 로그인 안내: ${err.message}`);
@@ -876,6 +920,7 @@ function startEscapeRoom(eraId, roomIdx) {
     gameState.isTimerPaused = false;
     gameState.foundClues = [];
     
+    setMobileEscapeView('room');
     updateTimerDisplay();
     updateClueInventoryUI();
     renderHotspots(roomData);
@@ -1023,13 +1068,38 @@ function renderPuzzleArea(puzzle) {
         area.innerHTML = `
             <div class="digit-lock-container">
                 <div class="digit-inputs">
-                    <input type="text" id="digit-input-field" class="digit-box" placeholder="답 입력">
+                    <input type="text" id="digit-input-field" class="digit-box" placeholder="답 입력" autocomplete="off">
                 </div>
-                <button id="btn-digit-submit" class="btn-submit-lock"><i class="fa-solid fa-key"></i> 자물쇠 해제</button>
+                <div class="mobile-numpad">
+                    <button class="numpad-btn" data-num="1">1</button>
+                    <button class="numpad-btn" data-num="2">2</button>
+                    <button class="numpad-btn" data-num="3">3</button>
+                    <button class="numpad-btn" data-num="4">4</button>
+                    <button class="numpad-btn" data-num="5">5</button>
+                    <button class="numpad-btn" data-num="6">6</button>
+                    <button class="numpad-btn" data-num="7">7</button>
+                    <button class="numpad-btn" data-num="8">8</button>
+                    <button class="numpad-btn" data-num="9">9</button>
+                    <button class="numpad-btn btn-clear" id="numpad-clear">지우기</button>
+                    <button class="numpad-btn" data-num="0">0</button>
+                    <button class="numpad-btn btn-ok" id="btn-digit-submit"><i class="fa-solid fa-key"></i> 자물쇠 해제</button>
+                </div>
             </div>
         `;
+
+        const inp = document.getElementById('digit-input-field');
+        area.querySelectorAll('.numpad-btn[data-num]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                inp.value += btn.getAttribute('data-num');
+            });
+        });
+
+        document.getElementById('numpad-clear')?.addEventListener('click', () => {
+            inp.value = '';
+        });
+
         document.getElementById('btn-digit-submit').addEventListener('click', () => {
-            const val = document.getElementById('digit-input-field').value.trim();
+            const val = inp.value.trim();
             attemptSolve(val === puzzle.answer);
         });
     }
@@ -1165,29 +1235,11 @@ function renderWrongNotesModal() {
     });
 }
 
-function renderAccountListModal() {
-    const grid = document.getElementById('account-cards-grid');
-    grid.innerHTML = '';
-    
-    Object.keys(gameState.accounts).forEach(accKey => {
-        const acc = gameState.accounts[accKey];
-        const card = document.createElement('div');
-        card.className = `account-card ${accKey === gameState.currentAccount ? 'active-account' : ''}`;
-        
-        card.innerHTML = `
-            <div class="account-name"><i class="fa-solid fa-user"></i> ${acc.name}</div>
-            <div class="account-info">점수: ${acc.totalScore}점</div>
-            <div class="account-info">해금한 시대: ${(acc.unlockedEras || [1]).length}개</div>
-            <div class="account-info text-rose">오답: ${(acc.wrongQuestionIds || []).length}개</div>
-        `;
-        
-        card.addEventListener('click', () => {
-            gameState.switchUserAccount(accKey);
-            closeModal('modal-login-account');
-            alert(`👤 '${acc.name}' 학생 계정으로 전환되었습니다.`);
-        });
-        grid.appendChild(card);
-    });
+function renderProfileModal() {
+    const input = document.getElementById('student-name-input');
+    if (input) {
+        input.value = gameState.playerName || "역사 탐험가";
+    }
 }
 
 // ==========================================================================

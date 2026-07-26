@@ -2,9 +2,14 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>타임머신 역사 마을 방탈출 | 초등 5학년 사회 탐험대</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=999">
     <!-- Google Fonts for crisp modern typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,7 +50,7 @@
                     <span class="avatar"><i class="fa-solid fa-user-astronaut"></i></span>
                     <div class="name-box">
                         <span id="player-name" class="name">역사 탐험가</span>
-                        <button id="switch-account-btn" title="학생 계정 로그인/전환"><i class="fa-solid fa-right-to-bracket"></i> 로그인</button>
+                        <button id="switch-account-btn" title="프로필 설정 및 동기화"><i class="fa-solid fa-user-gear"></i> 프로필 설정</button>
                     </div>
                 </div>
 
@@ -281,6 +286,12 @@
                     </div>
                 </div>
 
+                <!-- MOBILE TAB SWITCHER (VISIBLE ONLY ON MOBILE SCREEN) -->
+                <div class="mobile-escape-tabs">
+                    <button id="tab-btn-room-view" class="mobile-tab-btn active"><i class="fa-solid fa-eye"></i> 1. 방 내부 (단서 수집)</button>
+                    <button id="tab-btn-panel-view" class="mobile-tab-btn"><i class="fa-solid fa-key"></i> 2. 자물쇠 (암호 풀기)</button>
+                </div>
+
                 <!-- MAIN ESCAPE VIEWPORT split into ROOM CANVAS and CLUE/SOLVE PANEL -->
                 <div class="escape-main-layout">
                     
@@ -513,51 +524,33 @@
         </div>
     </div>
 
-    <!-- MODAL 7: FIREBASE AUTH & STUDENT ACCOUNT SWITCHER -->
+    <!-- MODAL 7: PROFILE & DATA BACKUP MODAL -->
     <div id="modal-login-account" class="modal-backdrop hidden">
         <div class="modal-window login-modal">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-user-shield text-gold"></i> 로그인 & 데이터 동기화</h3>
+                <h3><i class="fa-solid fa-user-gear text-gold"></i> 탐험가 프로필 & 데이터 동기화</h3>
                 <button class="close-modal-btn" id="close-login-modal">&times;</button>
             </div>
             <div class="modal-body">
                 <!-- FIREBASE CONNECT STATUS -->
                 <div class="firebase-status-box">
-                    <span class="fb-label"><i class="fa-solid fa-cloud"></i> 클라우드 동기화 상태:</span>
-                    <span id="firebase-status-badge" class="status-badge-offline">로컬 모드 (Firebase 설정 전)</span>
+                    <span class="fb-label"><i class="fa-solid fa-cloud"></i> 클라우드 데이터 동기화:</span>
+                    <span id="firebase-status-badge" class="status-badge-offline">로컬 자동 저장 중</span>
                 </div>
 
                 <div class="auth-buttons-group">
                     <button id="btn-google-login" class="btn-google">
-                        <i class="fa-brands fa-google"></i> Google 계정으로 클라우드 로그인
+                        <i class="fa-brands fa-google"></i> Google 계정으로 클라우드 백업 연동
                     </button>
                     <button id="btn-anon-login" class="btn-anon">
                         <i class="fa-solid fa-user-secret"></i> 익명 게스트로 시작하기 (간편 접속)
                     </button>
-                </div>
-
-                <hr class="divider-line">
-
-                <!-- LOCAL STUDENT ACCOUNT SWITCHER -->
-                <div class="login-input-group">
-                    <label for="student-name-input"><i class="fa-solid fa-id-card"></i> 로컬 학생 닉네임 / 학번 입력:</label>
-                    <div class="input-with-btn">
-                        <input type="text" id="student-name-input" placeholder="예: 5학년1반_김역사" maxlength="12">
-                        <button id="btn-login-submit" class="btn-cyan-lg"><i class="fa-solid fa-right-to-bracket"></i> 로그인/생성</button>
-                    </div>
-                </div>
-
-                <div class="account-list-section">
-                    <h4><i class="fa-solid fa-users"></i> 저장된 학생 계정 목록</h4>
-                    <div id="account-cards-grid" class="account-cards-grid">
-                        <!-- Inserted dynamically -->
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- AUDIO SYNTHESIZER SCRIPT (Web Audio API in app.js) -->
-    <script src="app.js"></script>
+    <script src="app.js?v=999"></script>
 </body>
 </html>

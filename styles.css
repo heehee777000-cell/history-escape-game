@@ -1541,18 +1541,880 @@ body {
     color: var(--text-muted);
 }
 
-/* RESPONSIVE BREAKPOINTS */
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS - FULL MOBILE SUPPORT
+   ========================================================================== */
+
+/* ---- TABLET & SMALL LAPTOP (max-width: 900px) ---- */
 @media (max-width: 900px) {
+    .main-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 12px 16px;
+    }
+
+    .brand {
+        justify-content: center;
+    }
+
+    .player-hud {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .energy-container {
+        width: 180px;
+    }
+
+    .nav-actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .content-viewport {
+        padding: 16px;
+    }
+
+    /* HUB HERO */
+    .hub-hero {
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px 20px;
+        text-align: center;
+    }
+
+    .hero-text h2 {
+        font-size: 1.15rem;
+    }
+
+    .warp-btn {
+        width: 100%;
+        font-size: 0.88rem;
+    }
+
+    /* ERA GRID */
+    .era-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+    }
+
+    /* VILLAGE MAP */
+    .village-header-bar {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+        padding: 12px 14px;
+    }
+
+    .village-scene-container {
+        height: auto;
+        min-height: 400px;
+    }
+
+    .room-nodes-layer {
+        flex-direction: column;
+        gap: 14px;
+        padding: 20px;
+        align-items: center;
+    }
+
+    .room-node-card {
+        width: 100%;
+        max-width: 340px;
+    }
+
+    /* ESCAPE ROOM */
+    .escape-hud {
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        padding: 10px 14px;
+    }
+
     .escape-main-layout {
         grid-template-columns: 1fr;
         height: auto;
     }
-    
+
     .room-viewport {
-        height: 360px;
+        height: 320px;
     }
-    
-    .player-hud {
-        flex-wrap: wrap;
+
+    /* MODALS */
+    .modal-window {
+        max-width: 95vw;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-body {
+        padding: 16px;
+    }
+
+    .modal-header {
+        padding: 12px 16px;
+    }
+
+    .modal-footer {
+        padding: 12px 16px;
+    }
+
+    /* TABLES */
+    .rank-table {
+        font-size: 0.75rem;
+    }
+
+    .rank-table th, .rank-table td {
+        padding: 8px 6px;
+    }
+
+    .tab-header {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .tab-btn {
+        font-size: 0.78rem;
+        padding: 8px;
+    }
+
+    /* RELIC GALLERY */
+    .relic-grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
     }
 }
+
+/* ---- PHONE LANDSCAPE / SMALL TABLET (max-width: 600px) ---- */
+@media (max-width: 600px) {
+    .main-header {
+        padding: 10px 12px;
+    }
+
+    .brand-text h1 {
+        font-size: 1.1rem;
+    }
+
+    .spin-icon {
+        font-size: 1.4rem;
+    }
+
+    .player-hud {
+        gap: 8px;
+    }
+
+    .profile-info {
+        padding: 5px 10px;
+        gap: 6px;
+    }
+
+    .name-box .name {
+        font-size: 0.8rem;
+    }
+
+    .name-box button {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+    }
+
+    .energy-container {
+        width: 140px;
+    }
+
+    .energy-header {
+        font-size: 0.7rem;
+    }
+
+    .stat-badge {
+        padding: 5px 10px;
+        font-size: 0.78rem;
+    }
+
+    .nav-btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        gap: 4px;
+    }
+
+    .content-viewport {
+        padding: 10px;
+    }
+
+    /* HUB */
+    .hub-hero {
+        padding: 14px 16px;
+        margin-bottom: 16px;
+    }
+
+    .hero-text h2 {
+        font-size: 1rem;
+    }
+
+    .hero-text p {
+        font-size: 0.8rem;
+    }
+
+    /* ERA GRID */
+    .era-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .era-card {
+        flex-direction: row;
+        border-radius: 14px;
+    }
+
+    .era-img-wrapper {
+        width: 120px;
+        height: auto;
+        min-height: 140px;
+        flex-shrink: 0;
+        border-radius: 14px 0 0 14px;
+    }
+
+    .era-body {
+        padding: 12px;
+    }
+
+    .era-body h3 {
+        font-size: 0.95rem;
+    }
+
+    .era-desc {
+        font-size: 0.78rem;
+        margin-bottom: 10px;
+    }
+
+    .era-badge {
+        font-size: 0.65rem;
+        padding: 3px 7px;
+    }
+
+    .btn-enter-village {
+        font-size: 0.8rem;
+        padding: 8px;
+    }
+
+    /* VILLAGE MAP */
+    .village-title-group h2 {
+        font-size: 1.05rem;
+    }
+
+    .village-scene-container {
+        min-height: auto;
+        height: auto;
+    }
+
+    #village-bg-img {
+        height: 200px;
+        position: relative;
+    }
+
+    .room-nodes-layer {
+        position: relative;
+        background: rgba(15, 23, 42, 0.95);
+        padding: 14px;
+        gap: 12px;
+    }
+
+    .room-node-card {
+        padding: 14px;
+        max-width: 100%;
+    }
+
+    .room-name {
+        font-size: 1rem;
+    }
+
+    /* ESCAPE ROOM */
+    .escape-hud {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-danger-sm {
+        width: 100%;
+        text-align: center;
+        font-size: 0.78rem;
+    }
+
+    .room-title-info h3 {
+        font-size: 1rem;
+    }
+
+    .timer-widget {
+        width: 56px;
+        height: 56px;
+    }
+
+    .seconds {
+        font-size: 1rem;
+    }
+
+    .pause-badge {
+        font-size: 0.6rem;
+        padding: 2px 6px;
+        top: -20px;
+    }
+
+    .room-viewport {
+        height: 260px;
+    }
+
+    .viewport-overlay-title {
+        font-size: 0.7rem;
+        padding: 5px 10px;
+    }
+
+    .hotspot-btn {
+        padding: 7px 10px;
+        font-size: 0.72rem;
+        gap: 5px;
+    }
+
+    .escape-side-panel {
+        gap: 12px;
+    }
+
+    .clue-board {
+        padding: 10px;
+    }
+
+    .clue-board-header h4 {
+        font-size: 0.82rem;
+    }
+
+    .lock-solver-box {
+        padding: 10px;
+    }
+
+    .solver-header h4 {
+        font-size: 0.82rem;
+    }
+
+    .question-prompt {
+        font-size: 0.78rem;
+    }
+
+    .quiz-option-btn {
+        font-size: 0.78rem;
+        padding: 8px 10px;
+    }
+
+    .digit-box {
+        width: 56px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+
+    /* MODALS */
+    .modal-backdrop {
+        padding: 10px;
+    }
+
+    .modal-window {
+        border-radius: 16px;
+        max-height: 88vh;
+    }
+
+    .modal-header h3 {
+        font-size: 0.95rem;
+    }
+
+    .clue-inspection-box {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .clue-icon-large {
+        font-size: 2rem;
+        padding: 14px;
+    }
+
+    .clue-content h4 {
+        font-size: 1rem;
+    }
+
+    .clue-description-text {
+        font-size: 0.85rem;
+    }
+
+    .clue-educational-tip {
+        font-size: 0.78rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 6px;
+    }
+
+    .btn-cyan-lg {
+        width: 100%;
+        font-size: 0.85rem;
+        padding: 10px 16px;
+    }
+
+    .modal-footer {
+        justify-content: center;
+    }
+
+    /* SUCCESS MODAL */
+    .reward-summary-box {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .reward-item {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .success-icon-anim {
+        font-size: 2.5rem;
+    }
+
+    .btn-gold-lg {
+        width: 100%;
+        font-size: 0.9rem;
+    }
+
+    .success-actions {
+        width: 100%;
+    }
+
+    /* WARP MODAL */
+    .warp-modal {
+        max-width: 100%;
+        padding: 20px;
+    }
+
+    .warp-portal-container {
+        width: 90px;
+        height: 90px;
+    }
+
+    .dest-era {
+        font-size: 1.05rem;
+    }
+
+    /* RANK TABLES */
+    .rank-table {
+        font-size: 0.7rem;
+    }
+
+    .rank-table th, .rank-table td {
+        padding: 6px 4px;
+    }
+
+    /* LOGIN MODAL */
+    .firebase-status-box {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+        font-size: 0.8rem;
+    }
+
+    .btn-google, .btn-anon {
+        font-size: 0.85rem;
+        padding: 10px;
+    }
+
+    .input-with-btn {
+        flex-direction: column;
+    }
+
+    .input-with-btn input {
+        font-size: 0.88rem;
+    }
+
+    .account-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* RELIC GALLERY */
+    .relic-grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        max-height: 300px;
+    }
+
+    .relic-card-icon {
+        font-size: 1.6rem;
+    }
+
+    .relic-card h5 {
+        font-size: 0.8rem;
+    }
+
+    /* WRONG NOTES */
+    .wrong-notes-container {
+        max-height: 350px;
+    }
+
+    .wrong-note-card {
+        padding: 12px;
+    }
+
+    .wrong-note-q {
+        font-size: 0.85rem;
+    }
+
+    .wrong-note-ans {
+        font-size: 0.8rem;
+    }
+
+    .gallery-sub {
+        font-size: 0.8rem;
+    }
+}
+
+/* ---- SMALL PHONE (max-width: 420px) ---- */
+@media (max-width: 420px) {
+    .brand-text h1 {
+        font-size: 0.95rem;
+    }
+
+    .brand-text .sub-title {
+        font-size: 0.65rem;
+    }
+
+    .spin-icon {
+        font-size: 1.2rem;
+    }
+
+    .energy-container {
+        width: 120px;
+    }
+
+    .nav-actions {
+        gap: 4px;
+    }
+
+    .nav-btn {
+        padding: 5px 7px;
+        font-size: 0.68rem;
+        border-radius: 8px;
+    }
+
+    .stat-badge {
+        padding: 4px 8px;
+        font-size: 0.72rem;
+    }
+
+    .content-viewport {
+        padding: 8px;
+    }
+
+    .hub-hero {
+        padding: 10px 12px;
+        margin-bottom: 12px;
+        border-radius: 12px;
+    }
+
+    .hero-text h2 {
+        font-size: 0.88rem;
+    }
+
+    .warp-btn {
+        padding: 10px 16px;
+        font-size: 0.82rem;
+    }
+
+    /* ERA CARD horizontal compact */
+    .era-img-wrapper {
+        width: 90px;
+        min-height: 120px;
+    }
+
+    .era-body h3 {
+        font-size: 0.85rem;
+    }
+
+    .era-desc {
+        font-size: 0.72rem;
+    }
+
+    .era-progress {
+        font-size: 0.72rem;
+    }
+
+    .btn-enter-village {
+        font-size: 0.75rem;
+        padding: 7px;
+    }
+
+    /* ESCAPE ROOM */
+    .room-viewport {
+        height: 200px;
+    }
+
+    .hotspot-btn {
+        padding: 5px 8px;
+        font-size: 0.65rem;
+        border-radius: 16px;
+    }
+
+    .timer-widget {
+        width: 48px;
+        height: 48px;
+    }
+
+    .seconds {
+        font-size: 0.88rem;
+    }
+
+    .timer-sub {
+        font-size: 0.5rem;
+    }
+
+    .room-title-info h3 {
+        font-size: 0.88rem;
+    }
+
+    .era-tag {
+        font-size: 0.65rem;
+    }
+
+    /* MODALS - extra compact */
+    .modal-body {
+        padding: 12px;
+    }
+
+    .modal-header {
+        padding: 10px 12px;
+    }
+
+    .modal-header h3 {
+        font-size: 0.85rem;
+    }
+
+    .close-modal-btn {
+        font-size: 1.2rem;
+    }
+
+    .clue-icon-large {
+        font-size: 1.6rem;
+        padding: 10px;
+    }
+
+    .clue-content h4 {
+        font-size: 0.9rem;
+    }
+
+    .clue-description-text {
+        font-size: 0.8rem;
+    }
+
+    .rank-table {
+        font-size: 0.65rem;
+    }
+
+    .rank-table th, .rank-table td {
+        padding: 5px 3px;
+        word-break: break-all;
+    }
+
+    .relic-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .digit-inputs {
+        gap: 5px;
+    }
+
+    .digit-box {
+        width: 44px;
+        height: 36px;
+        font-size: 0.95rem;
+    }
+
+    .village-title-group h2 {
+        font-size: 0.92rem;
+    }
+
+    .village-energy-indicator {
+        font-size: 0.75rem;
+    }
+
+    .btn-danger-sm {
+        font-size: 0.72rem;
+        padding: 5px 10px;
+    }
+}
+
+/* ---- SAFE AREA (notch / home indicator) ---- */
+@supports (padding: env(safe-area-inset-top)) {
+    .main-header {
+        padding-top: max(14px, env(safe-area-inset-top));
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+    }
+
+    .content-viewport {
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+}
+
+/* MOBILE ESCAPE ROOM VIEW TABS */
+.mobile-escape-tabs {
+    display: none;
+    margin-bottom: 12px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 6px;
+}
+
+.mobile-tab-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    touch-action: manipulation;
+}
+
+.mobile-tab-btn.active {
+    background: var(--primary-cyan);
+    color: #0f172a;
+    box-shadow: 0 0 12px var(--primary-cyan-glow);
+}
+
+@media (max-width: 900px) {
+    .mobile-escape-tabs {
+        display: flex;
+    }
+
+    .escape-main-layout {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+    }
+
+    .escape-main-layout.show-room .room-viewport {
+        display: block !important;
+    }
+
+    .escape-main-layout.show-room .escape-side-panel {
+        display: none !important;
+    }
+
+    .escape-main-layout.show-panel .room-viewport {
+        display: none !important;
+    }
+
+    .escape-main-layout.show-panel .escape-side-panel {
+        display: flex !important;
+        width: 100%;
+    }
+
+    .room-viewport {
+        height: 380px;
+        min-height: 280px;
+    }
+}
+
+@media (max-width: 600px) {
+    .room-viewport {
+        height: 280px;
+    }
+}
+
+/* VIRTUAL TOUCH NUMPAD FOR MOBILE LOCK SOLVER */
+.mobile-numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.numpad-btn {
+    padding: 12px;
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    touch-action: manipulation;
+}
+
+.numpad-btn:active {
+    transform: scale(0.95);
+    background: var(--primary-cyan);
+    color: #0f172a;
+}
+
+.numpad-btn.btn-clear {
+    background: rgba(244, 63, 94, 0.2);
+    color: var(--primary-rose);
+    border-color: rgba(244, 63, 94, 0.4);
+    font-size: 0.9rem;
+}
+
+.numpad-btn.btn-ok {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    font-size: 0.95rem;
+    grid-column: span 2;
+}
+
+/* ---- TOUCH DEVICE ENHANCEMENTS ---- */
+button, input, select, .hotspot-btn, .quiz-option-btn, .room-node-card, .era-card {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .hotspot-btn {
+        min-width: 48px;
+        min-height: 48px;
+        font-size: 0.85rem;
+    }
+
+    .quiz-option-btn {
+        min-height: 48px;
+        padding: 12px 14px;
+        font-size: 0.9rem;
+    }
+
+    .btn-enter-village,
+    .btn-start-room,
+    .btn-submit-lock,
+    .btn-cyan-lg,
+    .btn-gold-lg,
+    .nav-btn,
+    .tab-btn {
+        min-height: 44px;
+    }
+
+    .close-modal-btn {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
