@@ -684,10 +684,23 @@ function setupEventListeners() {
         }
         const provider = new firebase.auth.GoogleAuthProvider();
         firebaseAuth.signInWithPopup(provider).then(result => {
-            alert(`🔑 Firebase 구글 인증 성공: ${result.user.displayName}님 환영합니다!`);
+            alert(`🔑 Firebase 구글 인증 성공: ${result.user.displayName || result.user.email}님 환영합니다!`);
             closeModal('modal-login-account');
         }).catch(err => {
-            alert(`Firebase 인증 안내: ${err.message}`);
+            alert(`Google 인증 안내: ${err.message}`);
+        });
+    });
+
+    document.getElementById('btn-anon-login').addEventListener('click', () => {
+        if (!firebaseAuth) {
+            alert('⚙️ Firebase 설정이 아직 완료되지 않았습니다.');
+            return;
+        }
+        firebaseAuth.signInAnonymously().then(result => {
+            alert(`👤 익명 게스트로 로그인 성공! 클라우드에 게스트 전용 데이터가 자동 생성됩니다.`);
+            closeModal('modal-login-account');
+        }).catch(err => {
+            alert(`익명 로그인 안내: ${err.message}`);
         });
     });
 
