@@ -26,23 +26,34 @@ class SoundEngine {
     }
 
     startBGM() {
-        if (this.bgmPlaying || this.isMuted) return;
         this.init();
         if (!this.ctx) return;
         
+        const launch = () => {
+            if (!this.bgmPlaying && !this.isMuted) {
+                this.bgmPlaying = true;
+                this.playEpicBGMSequence();
+            }
+        };
+
         if (this.ctx.state === 'suspended') {
-            this.ctx.resume();
+            this.ctx.resume().then(launch).catch(launch);
+        } else {
+            launch();
         }
-        
-        this.bgmPlaying = true;
-        this.playEpicBGMSequence();
     }
 
     toggleBGM() {
+        this.init();
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+        
         this.isMuted = !this.isMuted;
         if (this.isMuted) {
             this.stopBGM();
         } else {
+            this.stopBGM();
             this.startBGM();
         }
         return !this.isMuted;
@@ -56,7 +67,7 @@ class SoundEngine {
         }
         if (this.bgmGain) {
             try {
-                this.bgmGain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.5);
+                this.bgmGain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.3);
             } catch(e) {}
         }
     }
@@ -80,7 +91,7 @@ class SoundEngine {
 
             const chordGain = this.ctx.createGain();
             chordGain.gain.setValueAtTime(0.001, now);
-            chordGain.gain.linearRampToValueAtTime(0.035, now + 1.2);
+            chordGain.gain.linearRampToValueAtTime(0.18, now + 1.2); // Rich warm volume
             chordGain.gain.exponentialRampToValueAtTime(0.001, now + 3.8);
             chordGain.connect(this.ctx.destination);
             this.bgmGain = chordGain;
@@ -93,7 +104,7 @@ class SoundEngine {
                 const lfo = this.ctx.createOscillator();
                 const lfoGain = this.ctx.createGain();
                 lfo.frequency.value = 3.0;
-                lfoGain.gain.value = freq * 0.004;
+                lfoGain.gain.value = freq * 0.006;
                 lfo.connect(osc.frequency);
                 lfo.start(now);
                 lfo.stop(now + 4.0);
@@ -103,13 +114,13 @@ class SoundEngine {
                 osc.stop(now + 4.0);
             });
 
-            // Gentle Ambient Arpeggio Pulse
+            // Ambient Arpeggio Pulse
             for (let i = 0; i < 4; i++) {
                 const pulseOsc = this.ctx.createOscillator();
                 const pulseGain = this.ctx.createGain();
                 pulseOsc.type = 'sine';
                 pulseOsc.frequency.setValueAtTime(currentNotes[i % currentNotes.length] * 2, now + i * 0.9);
-                pulseGain.gain.setValueAtTime(0.012, now + i * 0.9);
+                pulseGain.gain.setValueAtTime(0.06, now + i * 0.9);
                 pulseGain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.9 + 0.6);
                 pulseOsc.connect(pulseGain);
                 pulseGain.connect(this.ctx.destination);
