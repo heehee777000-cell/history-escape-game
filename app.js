@@ -8,15 +8,120 @@
    - [Fix] 타임머신 에너지 100% 충전 전 다른 시대 이동 불가 (시대 잠금/해금 시스템)
    ========================================================================== */
 
-// Web Audio API Sound Synthesizer
+// Web Audio API Sound Synthesizer & Epic BGM Engine
 class SoundEngine {
     constructor() {
         this.ctx = null;
+        this.bgmPlaying = false;
+        this.bgmTimer = null;
+        this.bgmGain = null;
+        this.isMuted = false;
+        this.chordStep = 0;
     }
     
     init() {
         if (!this.ctx) {
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    startBGM() {
+        if (this.bgmPlaying || this.isMuted) return;
+        this.init();
+        if (!this.ctx) return;
+        
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+        
+        this.bgmPlaying = true;
+        this.playEpicBGMSequence();
+    }
+
+    toggleBGM() {
+        this.isMuted = !this.isMuted;
+        if (this.isMuted) {
+            this.stopBGM();
+        } else {
+            this.startBGM();
+        }
+        return !this.isMuted;
+    }
+
+    stopBGM() {
+        this.bgmPlaying = false;
+        if (this.bgmTimer) {
+            clearTimeout(this.bgmTimer);
+            this.bgmTimer = null;
+        }
+        if (this.bgmGain) {
+            try {
+                this.bgmGain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.5);
+            } catch(e) {}
+        }
+    }
+
+    playEpicBGMSequence() {
+        if (!this.bgmPlaying || this.isMuted || !this.ctx) return;
+
+        try {
+            const now = this.ctx.currentTime;
+            
+            // Epic Time-Travel Chords (D minor -> Bb major -> C major -> A minor)
+            const chords = [
+                [146.83, 220.00, 293.66, 349.23], // D minor
+                [116.54, 174.61, 233.08, 293.66], // Bb major
+                [130.81, 196.00, 261.63, 329.63], // C major
+                [110.00, 164.81, 220.00, 261.63]  // A minor
+            ];
+
+            const currentNotes = chords[this.chordStep % chords.length];
+            this.chordStep++;
+
+            const chordGain = this.ctx.createGain();
+            chordGain.gain.setValueAtTime(0.001, now);
+            chordGain.gain.linearRampToValueAtTime(0.035, now + 1.2);
+            chordGain.gain.exponentialRampToValueAtTime(0.001, now + 3.8);
+            chordGain.connect(this.ctx.destination);
+            this.bgmGain = chordGain;
+
+            currentNotes.forEach((freq, idx) => {
+                const osc = this.ctx.createOscillator();
+                osc.type = idx === 0 ? 'sine' : 'triangle';
+                osc.frequency.setValueAtTime(freq, now);
+
+                const lfo = this.ctx.createOscillator();
+                const lfoGain = this.ctx.createGain();
+                lfo.frequency.value = 3.0;
+                lfoGain.gain.value = freq * 0.004;
+                lfo.connect(osc.frequency);
+                lfo.start(now);
+                lfo.stop(now + 4.0);
+
+                osc.connect(chordGain);
+                osc.start(now);
+                osc.stop(now + 4.0);
+            });
+
+            // Gentle Ambient Arpeggio Pulse
+            for (let i = 0; i < 4; i++) {
+                const pulseOsc = this.ctx.createOscillator();
+                const pulseGain = this.ctx.createGain();
+                pulseOsc.type = 'sine';
+                pulseOsc.frequency.setValueAtTime(currentNotes[i % currentNotes.length] * 2, now + i * 0.9);
+                pulseGain.gain.setValueAtTime(0.012, now + i * 0.9);
+                pulseGain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.9 + 0.6);
+                pulseOsc.connect(pulseGain);
+                pulseGain.connect(this.ctx.destination);
+                pulseOsc.start(now + i * 0.9);
+                pulseOsc.stop(now + i * 0.9 + 0.6);
+            }
+
+            this.bgmTimer = setTimeout(() => {
+                this.playEpicBGMSequence();
+            }, 3900);
+        } catch(e) {
+            console.log('BGM Synthesizer error:', e);
         }
     }
 
@@ -664,14 +769,17 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHallOfFameTables();
     renderRelicGallery();
 
-    // Mobile Audio Context Touch Unlock
+    // Mobile Audio Context Touch Unlock & BGM Auto-start
     const unlockAudio = () => {
         audioSFX.init();
+        audioSFX.startBGM();
         document.removeEventListener('touchstart', unlockAudio);
         document.removeEventListener('pointerdown', unlockAudio);
+        document.removeEventListener('click', unlockAudio);
     };
-    document.addEventListener('touchstart', unlockAudio, { passive: true });
-    document.addEventListener('pointerdown', unlockAudio, { passive: true });
+    document.addEventListener('touchstart', unlockAudio, { passive: true, once: true });
+    document.addEventListener('pointerdown', unlockAudio, { passive: true, once: true });
+    document.addEventListener('click', unlockAudio, { passive: true, once: true });
 });
 
 function setMobileEscapeView(view) {
@@ -694,6 +802,25 @@ function setMobileEscapeView(view) {
 }
 
 function setupEventListeners() {
+    // BGM Toggle Button Listener
+    const bgmBtn = document.getElementById('bgm-toggle-btn');
+    const bgmText = document.getElementById('bgm-status-text');
+    if (bgmBtn) {
+        bgmBtn.addEventListener('click', () => {
+            const active = audioSFX.toggleBGM();
+            if (bgmText) {
+                bgmText.textContent = active ? "배경음 ON" : "배경음 OFF";
+            }
+            if (active) {
+                bgmBtn.classList.remove('btn-secondary');
+                bgmBtn.classList.add('btn-purple');
+            } else {
+                bgmBtn.classList.remove('btn-purple');
+                bgmBtn.classList.add('btn-secondary');
+            }
+        });
+    }
+
     // Mobile Room Escape Tabs
     document.getElementById('tab-btn-room-view')?.addEventListener('click', () => setMobileEscapeView('room'));
     document.getElementById('tab-btn-panel-view')?.addEventListener('click', () => setMobileEscapeView('panel'));
