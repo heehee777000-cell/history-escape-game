@@ -78,59 +78,76 @@ class SoundEngine {
         try {
             const now = this.ctx.currentTime;
             
-            // Epic Time-Travel Chords (D minor -> Bb major -> C major -> A minor)
+            // Heroic Inspiring Explorer Chords (C Major -> F Major -> G Major -> C Major High Fanfare)
             const chords = [
-                [146.83, 220.00, 293.66, 349.23], // D minor
-                [116.54, 174.61, 233.08, 293.66], // Bb major
-                [130.81, 196.00, 261.63, 329.63], // C major
-                [110.00, 164.81, 220.00, 261.63]  // A minor
+                [130.81, 196.00, 261.63, 329.63, 392.00], // C Major (Hope & Adventure)
+                [174.61, 220.00, 261.63, 349.23, 440.00], // F Major (Grand Expansion)
+                [196.00, 246.94, 293.66, 392.00, 493.88], // G Major (Heroic Energy)
+                [130.81, 261.63, 329.63, 392.00, 523.25]  // C Major High (Glorious Triumph)
             ];
 
             const currentNotes = chords[this.chordStep % chords.length];
             this.chordStep++;
 
+            // Main Heroic Brass/Pad Gain
             const chordGain = this.ctx.createGain();
             chordGain.gain.setValueAtTime(0.001, now);
-            chordGain.gain.linearRampToValueAtTime(0.18, now + 1.2); // Rich warm volume
-            chordGain.gain.exponentialRampToValueAtTime(0.001, now + 3.8);
+            chordGain.gain.linearRampToValueAtTime(0.22, now + 0.5); // Fast, energetic attack
+            chordGain.gain.exponentialRampToValueAtTime(0.001, now + 3.1);
             chordGain.connect(this.ctx.destination);
             this.bgmGain = chordGain;
 
             currentNotes.forEach((freq, idx) => {
                 const osc = this.ctx.createOscillator();
-                osc.type = idx === 0 ? 'sine' : 'triangle';
+                osc.type = idx === 0 ? 'sine' : (idx % 2 === 0 ? 'triangle' : 'sawtooth');
                 osc.frequency.setValueAtTime(freq, now);
 
-                const lfo = this.ctx.createOscillator();
-                const lfoGain = this.ctx.createGain();
-                lfo.frequency.value = 3.0;
-                lfoGain.gain.value = freq * 0.006;
-                lfo.connect(osc.frequency);
-                lfo.start(now);
-                lfo.stop(now + 4.0);
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(idx === 0 ? 350 : 1800, now);
 
-                osc.connect(chordGain);
+                osc.connect(filter);
+                filter.connect(chordGain);
+
                 osc.start(now);
-                osc.stop(now + 4.0);
+                osc.stop(now + 3.2);
             });
 
-            // Ambient Arpeggio Pulse
-            for (let i = 0; i < 4; i++) {
+            // Energetic Rising Fanfare Arpeggio (C4 -> E4 -> G4 -> C5)
+            const arpNotes = [currentNotes[1], currentNotes[2], currentNotes[3], currentNotes[currentNotes.length - 1]];
+            arpNotes.forEach((freq, i) => {
+                const arpOsc = this.ctx.createOscillator();
+                const arpGain = this.ctx.createGain();
+                arpOsc.type = 'triangle';
+                arpOsc.frequency.setValueAtTime(freq, now + i * 0.25);
+
+                arpGain.gain.setValueAtTime(0.001, now + i * 0.25);
+                arpGain.gain.linearRampToValueAtTime(0.08, now + i * 0.25 + 0.05);
+                arpGain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.25 + 0.4);
+
+                arpOsc.connect(arpGain);
+                arpGain.connect(this.ctx.destination);
+                arpOsc.start(now + i * 0.25);
+                arpOsc.stop(now + i * 0.25 + 0.4);
+            });
+
+            // Driving March Beat Pulse (8th note rhythm)
+            for (let i = 0; i < 8; i++) {
                 const pulseOsc = this.ctx.createOscillator();
                 const pulseGain = this.ctx.createGain();
                 pulseOsc.type = 'sine';
-                pulseOsc.frequency.setValueAtTime(currentNotes[i % currentNotes.length] * 2, now + i * 0.9);
-                pulseGain.gain.setValueAtTime(0.06, now + i * 0.9);
-                pulseGain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.9 + 0.6);
+                pulseOsc.frequency.setValueAtTime(currentNotes[0], now + i * 0.4);
+                pulseGain.gain.setValueAtTime(0.05, now + i * 0.4);
+                pulseGain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.4 + 0.15);
                 pulseOsc.connect(pulseGain);
                 pulseGain.connect(this.ctx.destination);
-                pulseOsc.start(now + i * 0.9);
-                pulseOsc.stop(now + i * 0.9 + 0.6);
+                pulseOsc.start(now + i * 0.4);
+                pulseOsc.stop(now + i * 0.4 + 0.15);
             }
 
             this.bgmTimer = setTimeout(() => {
                 this.playEpicBGMSequence();
-            }, 3900);
+            }, 3100);
         } catch(e) {
             console.log('BGM Synthesizer error:', e);
         }
