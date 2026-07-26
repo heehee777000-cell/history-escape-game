@@ -5,6 +5,7 @@
    - 오답 노트 & 복습 모드 (Wrong Answer Review System)
    - 멀티 플레이어/학생 로그인 연동 (Account Switcher)
    - Firebase Auth & Firestore 클라우드 데이터 안전 동기화
+   - [Fix] 타임머신 에너지 100% 충전 전 다른 시대 이동 불가 (시대 잠금/해금 시스템)
    ========================================================================== */
 
 // Web Audio API Sound Synthesizer
@@ -446,7 +447,6 @@ function initFirebaseIfAvailable() {
             firebaseDb = firebase.firestore();
             isFirebaseOnline = true;
             
-            // Listen to auth state
             firebaseAuth.onAuthStateChanged(user => {
                 if (user) {
                     document.getElementById('firebase-status-badge').textContent = `클라우드 연결됨 (${user.displayName || user.email || '인증 사용자'})`;
@@ -474,7 +474,6 @@ async function syncUserWithFirestore(uid) {
             gameState.accounts[uid] = data;
             gameState.switchUserAccount(uid);
         } else {
-            // Write initial isolated user data
             const newData = gameState.accounts[gameState.currentAccount] || gameState.createNewAccountData(gameState.playerName);
             await userRef.set(newData);
         }
@@ -495,7 +494,7 @@ async function saveToFirestoreIfOnline() {
 }
 
 // ==========================================================================
-// GAME STATE MANAGEMENT & MULTI-ACCOUNT SYSTEM
+// GAME STATE MANAGEMENT (ERA UNLOCK & PROGRESSION LOCK)
 // ==========================================================================
 const gameState = {
     currentAccount: "학생_탐험가1",
@@ -507,6 +506,7 @@ const gameState = {
     currentEra: 1,
     currentRoomIdx: 0,
     eraProgress: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    unlockedEras: [1], // Default: Only Era 1 is unlocked! Eras 2-5 require Time Machine Warp!
     unlockedRelics: [],
     minigameClears: 0,
     totalEscapes: 0,
@@ -527,7 +527,7 @@ const gameState = {
     
     loadAccounts() {
         try {
-            const raw = localStorage.getItem('history_escape_accounts_v2');
+            const raw = localStorage.getItem('history_escape_accounts_v3');
             if (raw) {
                 this.accounts = JSON.parse(raw);
             }
@@ -549,6 +549,7 @@ const gameState = {
             totalScore: 0,
             energy: 0,
             eraProgress: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+            unlockedEras: [1], // Only Era 1 unlocked by default
             unlockedRelics: [],
             minigameClears: 0,
             totalEscapes: 0,
@@ -568,6 +569,7 @@ const gameState = {
         this.totalScore = data.totalScore || 0;
         this.energy = data.energy || 0;
         this.eraProgress = data.eraProgress || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        this.unlockedEras = data.unlockedEras || [1];
         this.unlockedRelics = data.unlockedRelics || [];
         this.minigameClears = data.minigameClears || 0;
         this.totalEscapes = data.totalEscapes || 0;
@@ -577,6 +579,7 @@ const gameState = {
         localStorage.setItem('history_escape_last_active', accName);
         this.saveState();
         this.updateHUD();
+        this.renderEraHubCards();
     },
     
     saveState() {
@@ -586,13 +589,14 @@ const gameState = {
                 totalScore: this.totalScore,
                 energy: this.energy,
                 eraProgress: this.eraProgress,
+                unlockedEras: this.unlockedEras,
                 unlockedRelics: this.unlockedRelics,
                 minigameClears: this.minigameClears,
                 totalEscapes: this.totalEscapes,
                 solvedQuestionIds: this.solvedQuestionIds,
                 wrongQuestionIds: this.wrongQuestionIds
             };
-            localStorage.setItem('history_escape_accounts_v2', JSON.stringify(this.accounts));
+            localStorage.setItem('history_escape_accounts_v3', JSON.stringify(this.accounts));
             saveToFirestoreIfOnline();
         } catch (e) {
             console.error('Failed saving state', e);
@@ -621,6 +625,27 @@ const gameState = {
             warpBtn.disabled = true;
             warpBtn.classList.remove('glow-warp');
         }
+        
+        this.renderEraHubCards();
+    },
+
+    renderEraHubCards() {
+        const eraCards = document.querySelectorAll('.era-card');
+        eraCards.forEach(card => {
+            const eraId = parseInt(card.getAttribute('data-era'));
+            const enterBtn = card.querySelector('.btn-enter-village');
+            const isUnlocked = this.unlockedEras.includes(eraId);
+            
+            if (isUnlocked) {
+                card.classList.remove('locked-era');
+                enterBtn.disabled = false;
+                enterBtn.innerHTML = `<i class="fa-solid fa-door-open"></i> 마을 진입하기`;
+            } else {
+                card.classList.add('locked-era');
+                enterBtn.disabled = true;
+                enterBtn.innerHTML = `<i class="fa-solid fa-lock"></i> 🔒 타임머신 에너지 100% 모아 해금`;
+            }
+        });
     }
 };
 
@@ -635,7 +660,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
-    // Login Modal
     document.getElementById('switch-account-btn').addEventListener('click', () => {
         renderAccountListModal();
         openModal('modal-login-account');
@@ -653,7 +677,6 @@ function setupEventListeners() {
         }
     });
 
-    // Google Sign-In button
     document.getElementById('btn-google-login').addEventListener('click', () => {
         if (!firebaseAuth) {
             alert('⚙️ Firebase 설정이 아직 완료되지 않았습니다.\nVercel 환경변수 등록 또는 Firebase 개발자 콘솔에서 키를 설정해주세요.');
@@ -668,14 +691,12 @@ function setupEventListeners() {
         });
     });
 
-    // Wrong Notes Modal
     document.getElementById('wrong-notes-btn').addEventListener('click', () => {
         renderWrongNotesModal();
         openModal('modal-wrong-notes');
     });
     document.getElementById('close-wrong-modal').addEventListener('click', () => closeModal('modal-wrong-notes'));
 
-    // Hall of Fame & Gallery Modals
     document.getElementById('hall-of-fame-btn').addEventListener('click', () => {
         renderHallOfFameTables();
         openModal('modal-hall-of-fame');
@@ -700,7 +721,11 @@ function setupEventListeners() {
     document.querySelectorAll('.btn-enter-village').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const eraId = parseInt(e.currentTarget.getAttribute('data-era'));
-            openVillageScreen(eraId);
+            if (gameState.unlockedEras.includes(eraId)) {
+                openVillageScreen(eraId);
+            } else {
+                alert('🔒 아직 해금되지 않은 시대입니다! 타임머신 에너지를 100% 모아 이동하세요.');
+            }
         });
     });
 
@@ -717,12 +742,29 @@ function setupEventListeners() {
     document.getElementById('modal-clue-confirm-btn').addEventListener('click', closeClueModal);
 
     document.getElementById('warp-active-btn').addEventListener('click', triggerTimeMachineWarp);
+    
+    // FINISH WARP & UNLOCK NEXT ERA!
     document.getElementById('btn-finish-warp').addEventListener('click', () => {
         closeModal('modal-warp');
+        
+        // Find next era to unlock
+        let nextEraToUnlock = 1;
+        for (let i = 1; i <= 5; i++) {
+            if (!gameState.unlockedEras.includes(i)) {
+                nextEraToUnlock = i;
+                break;
+            }
+        }
+        if (!gameState.unlockedEras.includes(nextEraToUnlock)) {
+            gameState.unlockedEras.push(nextEraToUnlock);
+        }
+        
         gameState.energy = 0;
         gameState.saveState();
         gameState.updateHUD();
-        switchScreen('screen-era-hub');
+        
+        // Automatically enter the newly unlocked era village!
+        openVillageScreen(nextEraToUnlock);
     });
 
     document.getElementById('btn-next-room').addEventListener('click', () => {
@@ -796,7 +838,7 @@ function openVillageScreen(eraId) {
 }
 
 // ==========================================================================
-// ESCAPE ROOM SESSION & NON-REPEATING QUESTION SELECTION
+// ESCAPE ROOM SESSION & QUESTION SELECTION
 // ==========================================================================
 function startEscapeRoom(eraId, roomIdx) {
     gameState.currentEra = eraId;
@@ -1011,10 +1053,10 @@ function handleRoomSuccess() {
     
     const speedBonus = gameState.timerSec * 10;
     const scoreGained = 300 + speedBonus;
-    const energyGained = 20;
+    const energyGained = 34; // 3 rooms x 34% = 100% Energy per era!
     
     gameState.totalScore += scoreGained;
-    gameState.energy += energyGained;
+    gameState.energy = Math.min(100, gameState.energy + energyGained);
     gameState.minigameClears += 1;
     gameState.totalEscapes += 1;
     
@@ -1045,8 +1087,14 @@ function handleRoomSuccess() {
 
 function triggerTimeMachineWarp() {
     audioSFX.play('warp');
-    const nextEra = (gameState.currentEra % 5) + 1;
-    const nextEraName = HISTORY_GAME_DATA[nextEra].eraName;
+    
+    let nextEraName = "다음 시대";
+    for (let i = 1; i <= 5; i++) {
+        if (!gameState.unlockedEras.includes(i)) {
+            nextEraName = HISTORY_GAME_DATA[i].eraName;
+            break;
+        }
+    }
     
     document.getElementById('warp-era-name').textContent = `${nextEraName} 시대로 워프...`;
     openModal('modal-warp');
@@ -1116,8 +1164,8 @@ function renderAccountListModal() {
         card.innerHTML = `
             <div class="account-name"><i class="fa-solid fa-user"></i> ${acc.name}</div>
             <div class="account-info">점수: ${acc.totalScore}점</div>
-            <div class="account-info">풀어낸 퀴즈: ${acc.solvedQuestionIds.length}개</div>
-            <div class="account-info text-rose">오답: ${acc.wrongQuestionIds.length}개</div>
+            <div class="account-info">해금한 시대: ${(acc.unlockedEras || [1]).length}개</div>
+            <div class="account-info text-rose">오답: ${(acc.wrongQuestionIds || []).length}개</div>
         `;
         
         card.addEventListener('click', () => {
